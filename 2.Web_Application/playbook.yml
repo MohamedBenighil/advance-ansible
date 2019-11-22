@@ -1,0 +1,52 @@
+- name: Deploy a web application
+  hosts: target1,target2
+  tasks:
+    - name: Install all required dependencies
+      apt: name={{ item }} state=installed
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: Install all required dependencies
+      apt: name={{ item }} state=installed
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: Start service mysql
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Create a new database with name 'employee_db'
+      mysql_db:
+        name: employee_db
+        state: present
+
+    - name: Create database user with name 'db_user' and password 'Passw0rd' with all database privileges
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: "*.*:ALL"
+        state: present
+
+    - name: Install and Configure Web Server
+      pip:
+        name: "{{item}}"
+        state: present
+        with_items:
+          - flask
+          - flask-mysql
+
+    - name: Download app.py
+      get_url:
+        url: https://raw.githubusercontent.com/mmumshad/simple-webapp/master/app.py
+        dest: /opt/app.py
+
+    - name: Start web server
+      shell: FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &
