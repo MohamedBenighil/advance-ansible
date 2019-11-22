@@ -1,0 +1,331 @@
+# EXERCICE1
+# In this section we will try to create a complete playbook using the knowledge we gained in the previous course
+# "Ansible for the Absolute Beginners" to deploy a multi-tiered web application.
+# We will start with deploying both web and database tiers on the same server called "db_and_web_server". Refer to the inventory
+# file.
+# In this exercise update the host on the play to work with our target server "db_and_web_server".
+#
+# ------------------------------
+#           BEFORE
+# ------------------------------
+#-
+#  name: Deploy a web application
+#  hosts: localhost
+#  tasks:
+#    - name: Install dependencies
+# ------------------------------
+#           AFTER
+# ------------------------------
+---
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+# EXERCICE2
+# In the given playbook the first task is incomplete. Only a name is given. Update the task to use the "apt"
+# module to install all required packages. The list of packages to be present are given below. Remember to use loop (with_items)
+# to install all packages in one task:
+#         - python
+#         - python-setuptools
+#         - python-dev
+#         - build-essential
+#         - python-pip
+#         - python-mysqldb
+# apt documentation - http://docs.ansible.com/ansible/latest/apt_module.html
+
+# ------------------------------
+#           AFTER
+# ------------------------------
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+# EXERCICE3
+# Now let us add a new task to the play to install MySQL database
+# Create a new task similar to the first one and use apt to install two more packages:
+#         - mysql-server
+#         - mysql-client
+# apt documentation - http://docs.ansible.com/ansible/latest/apt_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+# EXERCICE4
+# Now let us add a new task to start the mysql service
+# Create a new task and use "service" module to start the "mysql" service.
+# Ensure you set enabled to true so that the service starts automatically everytime the server restarts
+# service module documentation - http://docs.ansible.com/ansible/latest/service_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+# EXERCICE5
+# Now let us create application database on the sql server.
+# Create a new task and use "mysql_db" module to create a new database by the name "employee_db".
+# Refer to mysql_db module documentation - http://docs.ansible.com/ansible/latest/mysql_db_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+
+    - name: reate application database on the sql server
+      mysql_db:
+        name: employee_db
+        state: present
+# Exercice6
+# Now let us create application database user on the sql server.
+# Create a new task and use "mysql_user" module to create a new user. Use the details below:
+# user name: db_user
+# user password: Passw0rd
+# user privilege: *.*:ALL
+# host: '%'
+# Refer to mysql_user module documentation - http://docs.ansible.com/ansible/latest/mysql_user_module.html
+
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+
+    - name: reate application database on the sql server
+      mysql_db:
+        name: employee_db
+        state: present
+
+    - name: application database user on the sql server.
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: "*.*:ALL"
+        state: present
+        host: "%"
+# Exercice7
+# Now let us install python dependencies for the Flask Application
+# Create a new task and use "pip" module to install python dependencies.
+# Remember to use loop with with_items to install below dependencies:
+# - flask
+# - flask-mysql
+#
+# Refer to pip module documentation - http://docs.ansible.com/ansible/latest/pip_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+
+    - name: reate application database on the sql server
+      mysql_db:
+        name: employee_db
+        state: present
+
+    - name: application database user on the sql server.
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: "*.*:ALL"
+        state: present
+        host: "%"
+    - name: install python dependencies for the Flask Application
+      pip:
+        name: "{ { item } }"
+        state: present
+      with_items:
+        - flask
+        - flask-mysql
+# Exercice 8
+# Now we copy our application code. As you can see our application code is located right next to our playbook.
+# Feel free to explore it, but do not modify it.
+# Use the 'copy' module to copy the application code (app.py) to the location - /opt/app.py on the target server
+#
+# Refer to pip module documentation - http://docs.ansible.com/ansible/latest/copy_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+
+    - name: reate application database on the sql server
+      mysql_db:
+        name: employee_db
+        state: present
+
+    - name: application database user on the sql server.
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: "*.*:ALL"
+        state: present
+        host: "%"
+    - name: install python dependencies for the Flask Application
+      pip:
+        name: "{ { item } }"
+        state: present
+      with_items:
+        - flask
+        - flask-mysql
+    - name: copy our application code
+      copy:
+        src: "app.py"
+        dest: "/opt/app.py"
+# Let us now start the web application using the below command:
+#    FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &
+# Use the 'shell' module to execute the above command on the target host
+#
+# Refer to shell module documentation - http://docs.ansible.com/ansible/latest/shell_module.html
+- name: Deploy a web application
+  hosts: db_and_web_server
+  tasks:
+    - name: Install dependencies
+      apt: name={{item}} state=present
+      with_items:
+        - python
+        - python-setuptools
+        - python-dev
+        - build-essential
+        - python-pip
+        - python-mysqldb
+
+    - name: install MySQL database
+      apt: name={{item}} state=present
+      with_items:
+        - mysql-server
+        - mysql-client
+
+    - name: start the mysql service
+      service: name=mysql state=started
+      enabled: yes
+
+    - name: reate application database on the sql server
+      mysql_db:
+        name: employee_db
+        state: present
+
+    - name: application database user on the sql server.
+      mysql_user:
+        name: db_user
+        password: Passw0rd
+        priv: "*.*:ALL"
+        state: present
+        host: "%"
+    - name: install python dependencies for the Flask Application
+      pip:
+        name: "{ { item } }"
+        state: present
+      with_items:
+        - flask
+        - flask-mysql
+    - name: copy our application code
+      copy:
+        src: "app.py"
+        dest: "/opt/app.py"
+    - name: start the web application using the below command
+      shell: FLASK_APP=/opt/app.py nohup flask run --host=0.0.0.0 &
